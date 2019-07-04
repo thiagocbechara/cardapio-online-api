@@ -1,0 +1,27 @@
+{
+  "name": "cardapio-online-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thiagocbechara/cardapio-online-api.git"
+  },
+  "author": "Thiago Bechara",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/thiagocbechara/cardapio-online-api/issues"
+  },
+  "homepage": "https://github.com/thiagocbechara/cardapio-online-api#readme",
+  "dependencies": {
+    "body-parser": "^1.18.2",
+    "cors": "^2.8.4",
+    "express": "^4.16.3",
+    "jsonwebtoken": "^8.2.0",
+    "sqlite3": "^4.0.0"
+  }
+}
