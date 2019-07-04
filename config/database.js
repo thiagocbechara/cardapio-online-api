@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS usuarioS (
 )`;
 
 const MARMITAS_SCHEMA = `
-CREATE TABLE IF NOT EXISTS marmitaS (
+CREATE TABLE IF NOT EXISTS marmitas (
     marmita_id INTEGER PRIMARY KEY AUTOINCREMENT,
     marmita_descricao TEXT NOT NULL,
     marmita_preco DOUBLE NOT NULL,

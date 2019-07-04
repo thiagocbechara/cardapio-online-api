@@ -1,5 +1,5 @@
 const sign = require('jsonwebtoken');
-const UsuarioDao = require('../infra');
+const { UsuarioDao } = require('../infra');
 
 const api = {}
 

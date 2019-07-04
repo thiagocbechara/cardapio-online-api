@@ -1,5 +1,5 @@
-const usuarioAPI = require('../controllers');
-const wrapAsync = require('../infra');
+const { usuarioAPI } = require('../controllers');
+const { wrapAsync } = require('../infra');
 
 module.exports = app => {
     app.route('/usuario/login').post(wrapAsync(usuarioAPI.login));
