@@ -1,4 +1,10 @@
-const usuarioConverter = row => new Usuario(row);
+const usuarioConverter = row =>({
+    id: row.usuario_id,
+    nome_usuario: row.usuario_nome_usuario,
+    email: row.usuario_email,
+    senha: row.usuario_senha,
+    nome_completo: row.usuario_nome_completo
+});
 
 class UsusarioDao {
     constructor(db) {
@@ -7,13 +13,14 @@ class UsusarioDao {
 
     buscarPorNomeSenha(nome_usuario, senha) {
         return new Promise((resolve, reject) => this._db.get(
-            `SELECT * FROM user WHERE usuario_nome = ? AND usuario_senha = ?`,
+            `SELECT * FROM usuarios WHERE usuario_nome_usuario = ? AND usuario_senha = ?`,
             [nome_usuario, senha],
             (err, row) => {
                 if (err) {
                     console.log(err);
-                    return reject('Can`t find user');
+                    return reject('Usuário não encontrado');
                 }
+                console.log(row)
                 if (row) resolve(usuarioConverter(row));
                 resolve(null);
             }
@@ -21,12 +28,12 @@ class UsusarioDao {
     }
     buscarPorNome(nome_usuario) {
         return new Promise((resolve, reject) => this._db.get(
-            `SELECT * FROM user WHERE user_name = ?`,
+            `SELECT * FROM usuarios WHERE usuario_nome_usuario = ?`,
             [nome_usuario],
             (err, row) => {
                 if (err) {
                     console.log(err);
-                    return reject('Can`t find user');
+                    return reject('Usuário não encontrado');
                 }
                 if (row) resolve(usuarioConverter(row));
                 resolve(null);
@@ -37,7 +44,7 @@ class UsusarioDao {
     inserir(usuario) {
         return new Promise((resolve, reject) => {
             this._db.run(`
-                INSERT INTO user (
+                INSERT INTO usuarios (
                     usuario_nome_usuario,
                     usuario_email,
                     usuario_senha, 
@@ -52,10 +59,10 @@ class UsusarioDao {
                 function (err) {
                     if (err) {
                         console.log(err);
-                        return reject('Can`t register new user');
+                        return reject('Não é possível criar o novo usuário');
                     }
-                    console.log(`User ${usuario.nome_usuario} registered!`)
-                    resolve();
+                    console.log(`Usuário ${usuario.nome_usuario} registrado!`)
+                    resolve(this.lastId);
                 });
         });
     }

@@ -1,17 +1,18 @@
-const sign = require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
 const { UsuarioDao } = require('../infra');
 
 const api = {}
 
 api.login = async (req, res) => {
-    const { nome_usuario, password } = req.body;
+    const { nome_usuario, senha } = req.body;
     console.log('####################################');
-    const usuario = await new UsuarioDao(req.db).buscarPorNomeSenha(nome_usuario, password);
+    const usuario = await new UsuarioDao(req.db).buscarPorNomeSenha(nome_usuario, senha);
     console.log(usuario);
     if (usuario) {
         console.log(`User ${nome_usuario} authenticated`);
         console.log('Authentication Token added to response');
-        const token = sign(usuario, req.app.get('secret'), {
+        console.log(req.app.get('secret'))
+        const token = jwt.sign(usuario, req.app.get('secret'), {
             expiresIn: 86400 // seconds, 24h
         });
         res.set('x-access-token', token);

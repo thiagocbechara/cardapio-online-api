@@ -29,7 +29,7 @@ app.use((req, res, next) => {
     next();
 });
 
-// marmitaRoutes(app);
+marmitaRoutes(app);
 usuarioRoutes(app);
 
 app.use('*', (req, res) => {

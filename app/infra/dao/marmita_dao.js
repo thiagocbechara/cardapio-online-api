@@ -18,8 +18,9 @@ class MarmitaDao {
     }
     inserir(marmita) {
         return new Promise((resolve, reject) => {
-            this._db.run(`
-                INSERT INTO marmita (
+            let _this = this;
+            _this._db.run(`
+                INSERT INTO marmitas (
                     marmita_descricao,
                     marmita_preco,
                     marmita_qt_estoque,
@@ -30,31 +31,31 @@ class MarmitaDao {
                     marmita.descricao,
                     marmita.preco,
                     marmita.qt_estoque,
-                    marmita.url,
+                    marmita.url_imagem,
                     marmita.pec_desconto
                 ],
                 function (err) {
                     if (err) {
                         console.log(err);
-                        return reject('Can`t add photo');
+                        return reject('Não é possível inserir a marmita');
                     }
                     marmita.id = this.lastId;
-                });
-            for (let ingrediente of marmita.ingredientes) {
-                this._db.run(`
-                    INSERT INTO marmitas_ingredientes (
-                        marmitas_ingredientes_marmita_id,
-                        marmitas_ingredientes_ingrediente_id
-                    ) VALUES (?, ?)`,
-                    [marmita.id, ingrediente.id],
-                    function (err) {
-                        if (err) {
-                            console.log(err);
-                            return reject('Can`t add photo');
-                        }
-                    });
-            }
-            resolve(marmita.id);
+                    for (let ingrediente of marmita.ingredientes) {
+                        _this._db.run(`
+                            INSERT INTO marmitas_ingredientes (
+                                marmitas_ingredientes_marmita_id,
+                                marmitas_ingredientes_ingrediente_id
+                            ) VALUES (?, ?)`,
+                            [marmita.id, ingrediente.id],
+                            function (err) {
+                                if (err) {
+                                    console.log(err);
+                                    return reject('Não é possível inserir o ingrediente na marmita');
+                                }
+                            });
+                    }
+                    resolve(marmita.id);
+                });            
         })
     }
     inserirIngrediente(ingrediente) {
@@ -65,7 +66,7 @@ class MarmitaDao {
                 function (err) {
                     if (err) {
                         console.log(err);
-                        return reject('Can`t add photo');
+                        return reject('Não é possível inserir o ingrediente');
                     }
                     ingrediente.id = this.lastId;
                     resolve(ingrediente.id);
@@ -75,36 +76,107 @@ class MarmitaDao {
     selecionar(id) {
         return new Promise((resolve, reject) => {
             let marmita = {};
-            this._db.run(`
+            let _this = this;
+            _this._db.run(`
                 SELECT *
-                  FROM marmita
+                  FROM marmitas
                  WHERE marmita_id = ?`,
                 [id],
                 function (err, row) {
                     if (err) {
                         console.log(err);
-                        return reject('Can`t find photo');
+                        return reject('Marmita não encontrada');
                     }
                     if (!row) {
                         resolve(null);
                     }
                     marmita = marmitaConverter(row);
-                });
+                    _this._db.run(`
+                        SELECT ingrediente.*
+                        FROM ingredientes, marmitas_ingredientes
+                        WHERE marmitas_ingredientes_ingrediente_id = ingrediente_id
+                        AND marmitas_ingredientes_marmita_id     = ?`,
+                        [marmita.id],
+                        function (err, rows) {
+                            if (err) {
+                                console.log(err);
+                                return reject('Ingredientes não encontrados');
+                            }
+                            marmita.ingredientes = rows.map(ingredienteConverter);
+                        });
+                        resolve(marmita);
+                });            
+        })
+    }
+    listar(pagina, quantidade) {
+        return new Promise((resolve, reject) => {
             this._db.run(`
-                SELECT ingrediente.*
-                  FROM ingredientes, marmitas_ingredientes
-                 WHERE marmitas_ingredientes_ingrediente_id = ingrediente_id
-                   AND marmitas_ingredientes_marmita_id     = ?`,
-                [marmita.id],
+                SELECT *
+                  FROM marmitas
+                  LIMIT ? OFFSET ?`,
+                [quantidade, pagina * quantidade],
                 function (err, rows) {
                     if (err) {
                         console.log(err);
-                        return reject('Can`t find photo');
+                        return reject('Não é realizar a busca');
                     }
-                    marmita.ingredientes = rows.map(ingredienteConverter);
-                });
-            resolve(marmita);
+                    resolve(rows.map(marmitaConverter));
+                })
         })
     }
-    listar()
+    alterar(marmita) {
+        return new Promise((resolve, reject) => {
+            let _this = this;
+            _this._db.run(`
+                UPDATE marmitas
+                   SET marmita_descricao    = ?,
+                       marmita_preco        = ?,
+                       marmita_qt_estoque   = ?,
+                       marmita_url_imagem   = ?,
+                       marmita_pec_desconto = ?
+                 WHERE marmita_id = ?`,
+                [marmita.descricao, marmita.preco, marmita.qt_estoque,
+                marmita.url_imagem, marmita.pec_desconto, marmita.id],
+                err => {
+                    if (err) {
+                        console.log(err);
+                        return reject('Não é possível alterar a marmita');
+                    }
+                    _this._db.run(`
+                        DELETE
+                          FROM marmitas_ingredientes
+                         WHERE marmitas_ingredientes_marmita_id = ?`,
+                        [marmita.id]);
+                    for (let ingrediente of marmita.ingredientes) {
+                        this._db.run(`
+                            INSERT INTO marmitas_ingredientes (
+                                marmitas_ingredientes_marmita_id,
+                                marmitas_ingredientes_ingrediente_id
+                            ) VALUES (?, ?)`,
+                            [marmita.id, ingrediente.id],
+                            function (err) {
+                                if (err) {
+                                    console.log(err);
+                                    return reject('Não é possível inserir o ingrediente na marmita');
+                                }
+                            });
+                    }
+                    resolve('Marmita alterada com sucesso');
+                });
+        })
+    }
+    excluir(id) {
+        return new Promise((resolve, reject) => {
+            this._db.run(`
+                DELETE marmita WHERE marmita_id = ?`,
+                [id],
+                function(err){
+                    if(err){
+                        console.log(err);
+                        return reject('Não foi possível excluir a marmita');
+                    }
+                    resolve('Marmita excluída com sucesso');
+                })
+        })
+    }
 }

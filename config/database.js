@@ -2,7 +2,7 @@ const sqlite3 = require('sqlite3').verbose();
 const db = new sqlite3.Database('data.db');
 
 const USUARIOS_SCHEMA = `
-CREATE TABLE IF NOT EXISTS usuarioS (
+CREATE TABLE IF NOT EXISTS usuarios (
     usuario_id INTEGER PRIMARY KEY AUTOINCREMENT, 
     usuario_nome_usuario VARCHAR(30) NOT NULL UNIQUE, 
     usuario_email VARCHAR(255) NOT NULL, 
@@ -34,6 +34,15 @@ CREATE TABLE IF NOT EXISTS marmitas_ingredientes (
     FOREIGN KEY(marmitas_ingredientes_marmita_id) REFERENCES marmitas(marmita_id) ON DELETE CASCADE,
     FOREIGN KEY(marmitas_ingredientes_ingrediente_id) REFERENCES ingredientes(ingrediente_id) ON DELETE CASCADE
 )`;
+const INSERT_DEFAULT_USER = 
+`
+INSERT INTO usuarios (
+    usuario_nome_usuario, 
+    usuario_email,
+    usuario_senha,
+    usuario_nome_completo
+) SELECT 'beleaf', 'beleaf@teste.com.br', 'beleaf', 'Beleaf' WHERE NOT EXISTS (SELECT * FROM usuarios WHERE usuario_nome_usuario = 'beleaf')
+`;
 
 db.serialize(() => {
     db.run("PRAGMA foreign_keys=ON");
@@ -41,11 +50,12 @@ db.serialize(() => {
     db.run(MARMITAS_SCHEMA);
     db.run(INGREDIENTES_SCHEMA);
     db.run(MARMITAS_INGREDIENTES_SCHEMA);        
+    db.run(INSERT_DEFAULT_USER);        
 
-    // db.each("SELECT * FROM user", (err, user) => {
-    //     console.log('Users');
-    //     console.log(user);
-    // });
+    db.each("SELECT * FROM usuarios", (err, user) => {
+        console.log('Usuários');
+        console.log(user);
+    });
 });
 
 process.on('SIGINT', () =>
